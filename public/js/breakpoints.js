@@ -295,8 +295,8 @@ function breakpointsController() {
     // NOTE: If you clone the open source project, you should update 'cloud_name' 
     // and 'upload_preset' to match your account settings.
     var uploadWidget = cloudinary.createUploadWidget({ 
-      cloud_name: 'responsivebreakpoints', 
-      upload_preset: 'ttuqmsbd', 
+      cloud_name: 'paulapplegate-com', 
+      upload_preset: 'cloudinary', 
       theme: 'white', 
       multiple: false,
       sources: ['local', 'url'],
