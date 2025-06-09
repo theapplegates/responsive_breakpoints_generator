@@ -1,3 +1,37 @@
+# bundler state
+/.bundle
+/vendor/bundle/
+
+# project output
+/public/generate/
+/public/zip/
+
+# project meta
+/.idea/
+/.sass-cache/
+/.yardoc/
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp
+
+# dotenv
+.env
+
+# Mac
 .DS_Store
-node_modules
-.idea/
+
+# Grunt intermediate storage for 'grunt-responsive-images'
+.responsive_images_cache/
+
+# ignore all logs & pids
+*.log
+*.pid
+
+# Ignore bundler config
+/.bundle
+
+# Ignore vendor directory, which is where bundle install --path vendor/bundle will install gems
+/vendor/bundle/
