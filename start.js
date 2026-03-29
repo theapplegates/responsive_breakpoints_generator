@@ -1,6 +1,9 @@
-// Start script: launches Express (port 3000) + SSL proxy (port 5000 → 3000)
+// Start script: launches Express (port 3000) + SSL proxy (port 3001 → 3000)
+// macOS reserves port 5000 for AirPlay Receiver, so we use 3001 instead.
 const { spawn } = require("child_process");
-const path = require("path");
+
+const EXPRESS_PORT = 3000;
+const PROXY_PORT = 3001;
 
 // Start the Express server
 const express = spawn("node", ["server.js"], {
@@ -13,7 +16,7 @@ const express = spawn("node", ["server.js"], {
 setTimeout(() => {
   const proxy = spawn(
     "npx",
-    ["local-ssl-proxy", "--source", "5000", "--target", "3000"],
+    ["local-ssl-proxy", "--source", String(PROXY_PORT), "--target", String(EXPRESS_PORT)],
     {
       cwd: __dirname,
       stdio: "inherit",

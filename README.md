@@ -53,10 +53,12 @@ npx local-ssl-proxy --source 3001 --target 3000
 
 Then open `https://localhost:3001`.
 
-Or use the combined start script:
+Or use the combined start script (does both at once):
 ```bash
 node start.js
 ```
+
+> **macOS note:** Port 5000 is reserved by AirPlay Receiver. This project uses port 3001 for the SSL proxy instead.
 
 ## Architecture
 
