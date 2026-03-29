@@ -1,0 +1,17 @@
+{
+  "name": "responsive-breakpoints",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cloudinary": "^2.9.0",
+    "express": "^5.2.1",
+    "local-ssl-proxy": "^2.0.5"
+  }
+}

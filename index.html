@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Image Breakpoints Generator</title>
+  <meta name="description" content="Analyze hi-res images and find optimal dimensions for responsive images. Upload an image, set your breakpoint parameters, and get production-ready HTML5 code.">
+
+  <!-- Fonts -->
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="./base.css">
+  <link rel="stylesheet" href="./style.css">
+
+  <!-- Cloudinary Upload Widget -->
+  <script src="https://upload-widget.cloudinary.com/latest/global/all.js" type="text/javascript"></script>
+</head>
+<body>
+  <!-- ====== HEADER ====== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="./" class="logo-group">
+        <!-- SVG Logo Mark -->
+        <svg class="logo-mark" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+          <rect x="2" y="2" width="32" height="32" rx="8" stroke="currentColor" stroke-width="2"/>
+          <rect x="6" y="20" width="6" height="10" rx="1.5" fill="var(--color-primary)"/>
+          <rect x="15" y="14" width="6" height="16" rx="1.5" fill="var(--color-primary)" opacity="0.7"/>
+          <rect x="24" y="8" width="6" height="22" rx="1.5" fill="var(--color-primary)" opacity="0.4"/>
+        </svg>
+        <div class="logo-text">
+          Responsive Breakpoints
+          <span>Image Generator</span>
+        </div>
+      </a>
+      <div class="header-actions">
+        <a href="https://github.com/theapplegates/responsive_breakpoints_generator" target="_blank" rel="noopener noreferrer" class="gh-link" aria-label="View on GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+        <button class="theme-toggle" data-theme-toggle aria-label="Switch to dark mode">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <!-- ====== HERO ====== -->
+      <section class="hero fade-up">
+        <h1>Find the <em>optimal</em> responsive image sizes</h1>
+        <p class="subtitle">
+          Upload a high-resolution image, configure breakpoint settings, and generate
+          production-ready <code>&lt;img&gt;</code> and <code>&lt;picture&gt;</code> HTML.
+          Breakpoints are calculated by file-size reduction, not arbitrary widths.
+        </p>
+      </section>
+
+      <!-- ====== TOOL PANEL ====== -->
+      <div class="tool-panel fade-up">
+        <div class="tool-grid">
+          <!-- LEFT: Upload -->
+          <div class="upload-column">
+            <div class="upload-zone" id="upload-zone">
+              <div class="upload-content">
+                <svg class="upload-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M24 32V16"/>
+                  <path d="M16 22l8-8 8 8"/>
+                  <rect x="6" y="6" width="36" height="36" rx="6"/>
+                </svg>
+                <span class="upload-label">Upload an image</span>
+                <span class="upload-hint">or drag and drop &middot; JPG, PNG, WebP</span>
+              </div>
+              <div class="loader-wrap" id="loader">
+                <div class="spinner"></div>
+                <span class="loader-text">Generating breakpoints&hellip;</span>
+              </div>
+            </div>
+            <div class="divider-text">or select a sample image</div>
+            <div class="sample-images">
+              <label class="sample-img-btn">
+                <input type="radio" name="sample" data-image-info='{"public_id":"woman_glasses","format":"jpg","bytes":338299,"width":2400,"height":1600,"url":"https://res.cloudinary.com/responsivebreakpoints/image/upload/woman_glasses.jpg"}'>
+                <img src="https://res.cloudinary.com/responsivebreakpoints/image/upload/w_160,h_96,c_fill,g_face/woman_glasses.jpg" alt="Woman with glasses" width="160" height="96" loading="lazy">
+              </label>
+              <label class="sample-img-btn">
+                <input type="radio" name="sample" data-image-info='{"public_id":"castle","format":"jpg","bytes":521871,"width":2048,"height":1366,"url":"https://res.cloudinary.com/responsivebreakpoints/image/upload/castle.jpg"}'>
+                <img src="https://res.cloudinary.com/responsivebreakpoints/image/upload/w_160,h_96,c_fill/castle.jpg" alt="Castle landscape" width="160" height="96" loading="lazy">
+              </label>
+              <label class="sample-img-btn">
+                <input type="radio" name="sample" data-image-info='{"public_id":"robot","format":"png","bytes":495243,"width":2000,"height":2037,"url":"https://res.cloudinary.com/responsivebreakpoints/image/upload/robot.png"}'>
+                <img src="https://res.cloudinary.com/responsivebreakpoints/image/upload/w_160,h_96,c_fill/robot.png" alt="Robot illustration" width="160" height="96" loading="lazy">
+              </label>
+              <label class="sample-img-btn">
+                <input type="radio" name="sample" data-image-info='{"public_id":"dog","format":"jpg","bytes":537666,"width":3000,"height":2000,"url":"https://res.cloudinary.com/responsivebreakpoints/image/upload/dog.jpg"}'>
+                <img src="https://res.cloudinary.com/responsivebreakpoints/image/upload/w_160,h_96,c_fill/dog.jpg" alt="Dog photo" width="160" height="96" loading="lazy">
+              </label>
+            </div>
+          </div>
+
+          <!-- RIGHT: Settings -->
+          <div class="settings-column">
+            <h2 class="settings-title">Breakpoint Settings</h2>
+            <form id="settings-form">
+              <input type="hidden" name="public_id" id="public_id">
+              <div class="setting-group">
+                <div class="setting-label">
+                  <h3>Resolution range</h3>
+                  <button type="button" class="help-btn" aria-label="Help">?<span class="tooltip">The minimum and maximum image widths (in pixels) for your responsive breakpoints.</span></button>
+                </div>
+                <div class="dual-range-row">
+                  <div class="dual-range-item">
+                    <label for="min-width">Min width</label>
+                    <div style="display:flex;align-items:center;gap:var(--space-2)">
+                      <input type="range" id="min-width" name="min_width" class="range-input" min="50" max="1920" value="200" step="10">
+                      <span class="setting-value" id="min-width-val">200</span>
+                    </div>
+                  </div>
+                  <div class="dual-range-item">
+                    <label for="max-width">Max width</label>
+                    <div style="display:flex;align-items:center;gap:var(--space-2)">
+                      <input type="range" id="max-width" name="max_width" class="range-input" min="200" max="3840" value="1400" step="10">
+                      <span class="setting-value" id="max-width-val">1400</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="range-labels"><span>50px</span><span>3840px</span></div>
+              </div>
+
+              <div class="setting-group">
+                <div class="setting-label">
+                  <h3>Size step (KB)</h3>
+                  <button type="button" class="help-btn" aria-label="Help">?<span class="tooltip">Performance budget. Only image versions that reduce file size by approximately this amount are included.</span></button>
+                </div>
+                <div style="display:flex;align-items:center;gap:var(--space-2)">
+                  <input type="range" id="bytes-step" name="bytes_step" class="range-input" min="5" max="85" value="20" step="1">
+                  <span class="setting-value" id="bytes-step-val">20 KB</span>
+                </div>
+                <div class="range-labels"><span>5 KB</span><span>85 KB</span></div>
+              </div>
+
+              <div class="setting-group">
+                <div class="setting-label">
+                  <h3>Max images</h3>
+                  <button type="button" class="help-btn" aria-label="Help">?<span class="tooltip">Limit the number of generated breakpoint images. Caps results even if more versions could be generated from the size step.</span></button>
+                </div>
+                <div style="display:flex;align-items:center;gap:var(--space-2)">
+                  <input type="range" id="max-images" name="max_images" class="range-input" min="3" max="40" value="20" step="1">
+                  <span class="setting-value" id="max-images-val">20</span>
+                </div>
+                <div class="range-labels"><span>3</span><span>40</span></div>
+              </div>
+
+              <div class="setting-group">
+                <label class="checkbox-row">
+                  <input type="checkbox" name="retina" id="retina" value="1">
+                  <span>Include 2x retina (DPR 2.0) images</span>
+                </label>
+              </div>
+
+              <!-- Art Direction -->
+              <div class="setting-group">
+                <div class="setting-label">
+                  <h3>Art direction (optional)</h3>
+                  <button type="button" class="help-btn" aria-label="Help">?<span class="tooltip">Enable per-device aspect ratios and viewport ratios. Check a device to set its crop ratio and how much of the viewport the image occupies.</span></button>
+                </div>
+                <div class="art-direction">
+                  <div class="device-row disabled" data-device="desktop">
+                    <div class="device-check">
+                      <input type="checkbox" id="dev-desktop" class="screen-size-check" data-min-width="1200">
+                      <label for="dev-desktop">Desktop<span class="device-note resolution-note">-</span></label>
+                    </div>
+                    <select name="aspect_ratios[]" disabled>
+                      <option value="original" selected>Original</option>
+                      <option value="16:9">16:9</option>
+                      <option value="4:3">4:3</option>
+                      <option value="1:1">1:1</option>
+                      <option value="2:1">2:1</option>
+                      <option value="21:9">21:9</option>
+                      <option value="3:2">3:2</option>
+                    </select>
+                    <select name="view_port_ratios[]" disabled>
+                      <option value="100">100%</option>
+                      <option value="80">80%</option>
+                      <option value="60">60%</option>
+                      <option value="40" selected>40%</option>
+                      <option value="20">20%</option>
+                    </select>
+                    <input type="hidden" name="screen_sizes[]" value=",">
+                  </div>
+
+                  <div class="device-row disabled" data-device="laptop">
+                    <div class="device-check">
+                      <input type="checkbox" id="dev-laptop" class="screen-size-check" data-min-width="992" data-max-width="1199">
+                      <label for="dev-laptop">Laptop<span class="device-note resolution-note">-</span></label>
+                    </div>
+                    <select name="aspect_ratios[]" disabled>
+                      <option value="original">Original</option>
+                      <option value="16:9" selected>16:9</option>
+                      <option value="4:3">4:3</option>
+                      <option value="1:1">1:1</option>
+                      <option value="2:1">2:1</option>
+                      <option value="21:9">21:9</option>
+                      <option value="3:2">3:2</option>
+                    </select>
+                    <select name="view_port_ratios[]" disabled>
+                      <option value="100">100%</option>
+                      <option value="80">80%</option>
+                      <option value="60" selected>60%</option>
+                      <option value="40">40%</option>
+                      <option value="20">20%</option>
+                    </select>
+                    <input type="hidden" name="screen_sizes[]" value=",">
+                  </div>
+
+                  <div class="device-row disabled" data-device="tablet">
+                    <div class="device-check">
+                      <input type="checkbox" id="dev-tablet" class="screen-size-check" data-min-width="768" data-max-width="991">
+                      <label for="dev-tablet">Tablet<span class="device-note resolution-note">-</span></label>
+                    </div>
+                    <select name="aspect_ratios[]" disabled>
+                      <option value="original">Original</option>
+                      <option value="16:9">16:9</option>
+                      <option value="4:3" selected>4:3</option>
+                      <option value="1:1">1:1</option>
+                      <option value="2:1">2:1</option>
+                      <option value="21:9">21:9</option>
+                      <option value="3:2">3:2</option>
+                    </select>
+                    <select name="view_port_ratios[]" disabled>
+                      <option value="100">100%</option>
+                      <option value="80">80%</option>
+                      <option value="70" selected>70%</option>
+                      <option value="60">60%</option>
+                      <option value="40">40%</option>
+                    </select>
+                    <input type="hidden" name="screen_sizes[]" value=",">
+                  </div>
+
+                  <div class="device-row disabled" data-device="phone">
+                    <div class="device-check">
+                      <input type="checkbox" id="dev-phone" class="screen-size-check" data-min-width="0" data-max-width="767">
+                      <label for="dev-phone">Phone<span class="device-note resolution-note">-</span></label>
+                    </div>
+                    <select name="aspect_ratios[]" disabled>
+                      <option value="original">Original</option>
+                      <option value="16:9">16:9</option>
+                      <option value="4:3">4:3</option>
+                      <option value="1:1" selected>1:1</option>
+                      <option value="2:1">2:1</option>
+                      <option value="3:2">3:2</option>
+                      <option value="9:16">9:16</option>
+                    </select>
+                    <select name="view_port_ratios[]" disabled>
+                      <option value="100" selected>100%</option>
+                      <option value="80">80%</option>
+                      <option value="60">60%</option>
+                      <option value="40">40%</option>
+                      <option value="20">20%</option>
+                    </select>
+                    <input type="hidden" name="screen_sizes[]" value=",">
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" id="regenerate-btn" class="btn-primary" style="width:100%;display:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                Regenerate Breakpoints
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== RESULTS ====== -->
+      <div id="results-holder"></div>
+    </div>
+
+    <!-- ====== FOOTER ====== -->
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-api">
+            <h3>Automate via API</h3>
+            <p>Use Cloudinary's upload API to generate responsive breakpoints programmatically in your build pipeline.</p>
+            <div class="code-block">
+              <div class="code-tabs">
+                <button class="code-tab active" data-lang="node">Node.js</button>
+                <button class="code-tab" data-lang="ruby">Ruby</button>
+                <button class="code-tab" data-lang="python">Python</button>
+                <button class="code-tab" data-lang="php">PHP</button>
+              </div>
+              <pre id="api-code"><code id="api-code-content"></code></pre>
+            </div>
+            <p style="margin-top:var(--space-4)">
+              <a href="https://cloudinary.com/documentation/upload_images" target="_blank" rel="noopener noreferrer" style="color:var(--color-primary)">Read the full API docs &rarr;</a>
+            </p>
+          </div>
+          <div class="footer-powered">
+            <span class="powered-label">Powered by</span>
+            <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer">
+              <svg width="180" height="32" viewBox="0 0 180 32" fill="none" aria-label="Cloudinary">
+                <text x="0" y="24" font-family="var(--font-display)" font-size="22" font-weight="700" fill="var(--color-text)">Cloudinary</text>
+              </svg>
+            </a>
+            <p>Image and video management for web and mobile developers. An end-to-end solution for all your media needs.</p>
+            <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer">Visit cloudinary.com &rarr;</a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>&copy; 2026 Responsive Breakpoints Generator</span>
+          <div class="footer-links">
+            <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener noreferrer">Privacy</a>
+            <a href="https://github.com/theapplegates/responsive_breakpoints_generator" target="_blank" rel="noopener noreferrer">Source</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
