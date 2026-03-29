@@ -212,8 +212,17 @@
       },
       (error, result) => {
         log("Upload widget callback:", error, result);
-        if (!error && result && result.event === "success") {
+        if (error) {
+          console.error("Upload error:", error);
+          return;
+        }
+        if (result && result.event === "success") {
+          log("Upload success, info:", JSON.stringify(result.info));
           processImage(result.info);
+        }
+        // Also log all other events for debugging
+        if (result) {
+          log("Widget event:", result.event);
         }
       }
     );
@@ -271,6 +280,12 @@
           regenBtn.style.display = "";
         } else {
           log("No breakpoints returned", bpInfo);
+          const msg = (bpInfo && bpInfo.error && bpInfo.error.message) || "No breakpoints returned. The image may be too small or the API returned an error.";
+          resultsHolder.innerHTML = `
+            <div class="result-card" style="text-align:center;padding:var(--space-8)">
+              <p style="color:var(--color-error);font-weight:600">Could not generate breakpoints</p>
+              <p style="color:var(--color-text-muted);margin-top:var(--space-2);font-size:var(--text-sm)">${msg}</p>
+            </div>`;
         }
         setProcessing(false);
       });
