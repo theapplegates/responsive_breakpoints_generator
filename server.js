@@ -17,103 +17,106 @@ cloudinary.config({
 // Serve static files
 app.use(express.static("."));
 
-// POST /authenticate — generates signed params for Cloudinary explicit API
-app.post("/authenticate", (req, res) => {
-  const {
-    public_id,
-    aspect_ratios,
-    screen_sizes,
-    view_port_ratios,
-    min_width,
-    max_width,
-    bytes_step,
-    max_images,
-    retina,
-  } = req.body;
+// POST /generate — runs the full breakpoints generation server-side
+// This avoids browser timeout issues with the Cloudinary explicit API.
+app.post("/generate", async (req, res) => {
+  try {
+    const {
+      public_id,
+      aspect_ratios,
+      screen_sizes,
+      view_port_ratios,
+      min_width,
+      max_width,
+      bytes_step,
+      max_images,
+      retina,
+    } = req.body;
 
-  const ratios = Array.isArray(aspect_ratios)
-    ? aspect_ratios
-    : aspect_ratios
-    ? [aspect_ratios]
-    : ["original"];
-  const screens = Array.isArray(screen_sizes)
-    ? screen_sizes
-    : screen_sizes
-    ? [screen_sizes]
-    : [];
-  const vpRatios = Array.isArray(view_port_ratios)
-    ? view_port_ratios
-    : view_port_ratios
-    ? [view_port_ratios]
-    : [];
-  const isRetina = retina === "1";
+    const ratios = Array.isArray(aspect_ratios)
+      ? aspect_ratios
+      : aspect_ratios
+      ? [aspect_ratios]
+      : ["original"];
+    const screens = Array.isArray(screen_sizes)
+      ? screen_sizes
+      : screen_sizes
+      ? [screen_sizes]
+      : [];
+    const vpRatios = Array.isArray(view_port_ratios)
+      ? view_port_ratios
+      : view_port_ratios
+      ? [view_port_ratios]
+      : [];
+    const isRetina = retina === "1";
 
-  const breakpointsSettings = ratios.map((aspectRatio, index) => {
-    const settings = { create_derived: true };
+    const breakpointsSettings = ratios.map((aspectRatio, index) => {
+      const settings = { create_derived: true };
 
-    // Parse numeric params
-    ["min_width", "max_width", "bytes_step", "max_images"].forEach((k) => {
-      const val = req.body[k];
-      if (val && /^\d+$/.test(String(val))) {
-        settings[k] = parseInt(val, 10);
+      // Parse numeric params
+      ["min_width", "max_width", "bytes_step", "max_images"].forEach((k) => {
+        const val = req.body[k];
+        if (val && /^\d+$/.test(String(val))) {
+          settings[k] = parseInt(val, 10);
+        }
+      });
+
+      const vpRatio = parseInt(vpRatios[index] || "100", 10);
+
+      if (screens[index]) {
+        const parts = screens[index].split(",");
+        const minW = parts[0]
+          ? Math.ceil(parseInt(parts[0], 10) * (vpRatio / 100))
+          : 0;
+        const maxW = parts[1]
+          ? Math.ceil(parseInt(parts[1], 10) * (vpRatio / 100))
+          : 0;
+        if (minW > 0) settings.min_width = minW;
+        if (maxW > 0)
+          settings.max_width = Math.min(settings.max_width || maxW, maxW);
       }
+
+      // Convert bytes_step from KB to bytes
+      if (settings.bytes_step) settings.bytes_step = settings.bytes_step * 1024;
+
+      // Double max_width for retina
+      if (isRetina && settings.max_width) settings.max_width *= 2;
+
+      // Art direction transformation
+      if (aspectRatio !== "original") {
+        settings.transformation = {
+          crop: "fill",
+          aspect_ratio: aspectRatio,
+          gravity: "auto",
+        };
+      }
+
+      return settings;
     });
 
-    const vpRatio = parseInt(vpRatios[index] || "100", 10);
+    console.log(
+      `Generating breakpoints for ${public_id} (${breakpointsSettings.length} setting(s))...`
+    );
 
-    if (screens[index]) {
-      const parts = screens[index].split(",");
-      const minW = parts[0]
-        ? Math.ceil(parseInt(parts[0], 10) * (vpRatio / 100))
-        : 0;
-      const maxW = parts[1]
-        ? Math.ceil(parseInt(parts[1], 10) * (vpRatio / 100))
-        : 0;
-      if (minW > 0) settings.min_width = minW;
-      if (maxW > 0)
-        settings.max_width = Math.min(settings.max_width || maxW, maxW);
-    }
+    // Call Cloudinary's explicit API server-side (SDK handles auth + retries)
+    const result = await cloudinary.uploader.explicit(public_id, {
+      type: "upload",
+      responsive_breakpoints: breakpointsSettings,
+    });
 
-    // Convert bytes_step from KB to bytes
-    if (settings.bytes_step) settings.bytes_step = settings.bytes_step * 1024;
+    console.log(
+      `Got ${result.responsive_breakpoints?.[0]?.breakpoints?.length || 0} breakpoints`
+    );
 
-    // Double max_width for retina
-    if (isRetina && settings.max_width) settings.max_width *= 2;
-
-    // Art direction transformation
-    if (aspectRatio !== "original") {
-      settings.transformation = {
-        crop: "fill",
-        aspect_ratio: aspectRatio,
-        gravity: "auto",
-      };
-    }
-
-    return settings;
-  });
-
-  // Build upload params for the explicit API call
-  const timestamp = Math.round(Date.now() / 1000);
-  const params = {
-    type: "upload",
-    responsive_breakpoints: JSON.stringify(breakpointsSettings),
-    public_id: public_id,
-    timestamp: timestamp,
-  };
-
-  // Sign the request
-  const signature = cloudinary.utils.api_sign_request(
-    params,
-    cloudinary.config().api_secret
-  );
-
-  params.signature = signature;
-  params.api_key = cloudinary.config().api_key;
-
-  res.json({
-    url: `https://api.cloudinary.com/v1_1/${cloudinary.config().cloud_name}/image/explicit`,
-    params: params,
-  });
+    res.json(result);
+  } catch (err) {
+    console.error("Generate error:", err.message || err);
+    res.status(500).json({
+      error: {
+        message: err.message || "Failed to generate breakpoints",
+      },
+    });
+  }
 });
 
 // POST /zip_url — generates a signed ZIP download URL

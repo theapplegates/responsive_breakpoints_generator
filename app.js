@@ -268,31 +268,7 @@
     log("imageInfo:", imageInfo);
     setProcessing(true);
 
-    prepareAuthentication(imageInfo, (authInfo) => {
-      if (!authInfo) {
-        setProcessing(false);
-        return;
-      }
-      requestBreakpoints(authInfo, (bpInfo) => {
-        if (bpInfo && bpInfo.responsive_breakpoints) {
-          renderResults(imageInfo, bpInfo);
-          lastImageInfo = imageInfo;
-          regenBtn.style.display = "";
-        } else {
-          log("No breakpoints returned", bpInfo);
-          const msg = (bpInfo && bpInfo.error && bpInfo.error.message) || "No breakpoints returned. The image may be too small or the API returned an error.";
-          resultsHolder.innerHTML = `
-            <div class="result-card" style="text-align:center;padding:var(--space-8)">
-              <p style="color:var(--color-error);font-weight:600">Could not generate breakpoints</p>
-              <p style="color:var(--color-text-muted);margin-top:var(--space-2);font-size:var(--text-sm)">${msg}</p>
-            </div>`;
-        }
-        setProcessing(false);
-      });
-    });
-  }
-
-  function prepareAuthentication(imageInfo, callback) {
+    // Set public_id in the form and collect art-direction screen sizes
     document.getElementById("public_id").value = imageInfo.public_id;
     const params = formToMap();
 
@@ -316,42 +292,40 @@
       });
     }
 
-    fetch("./authenticate", {
+    // Call server-side /generate endpoint (handles Cloudinary API directly)
+    fetch("./generate", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(
-        new FormData(settingsForm)
-      ).toString(),
+      body: new URLSearchParams(new FormData(settingsForm)).toString(),
     })
       .then((r) => r.json())
-      .then((data) => {
-        log("authInfo:", data);
-        callback(data);
+      .then((bpInfo) => {
+        log("breakpointsInfo:", bpInfo);
+        if (bpInfo && bpInfo.responsive_breakpoints) {
+          renderResults(imageInfo, bpInfo);
+          lastImageInfo = imageInfo;
+          regenBtn.style.display = "";
+        } else {
+          log("No breakpoints returned", bpInfo);
+          const msg =
+            (bpInfo && bpInfo.error && bpInfo.error.message) ||
+            "No breakpoints returned. The image may be too small or the API returned an error.";
+          resultsHolder.innerHTML = `
+            <div class="result-card" style="text-align:center;padding:var(--space-8)">
+              <p style="color:var(--color-error);font-weight:600">Could not generate breakpoints</p>
+              <p style="color:var(--color-text-muted);margin-top:var(--space-2);font-size:var(--text-sm)">${msg}</p>
+            </div>`;
+        }
+        setProcessing(false);
       })
       .catch((err) => {
-        console.error("Auth error:", err);
-        callback(null);
-      });
-  }
-
-  function requestBreakpoints(authInfo, callback) {
-    const formData = new URLSearchParams();
-    for (const [k, v] of Object.entries(authInfo.params)) {
-      formData.append(k, v);
-    }
-
-    fetch(authInfo.url, {
-      method: "POST",
-      body: formData,
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        log("breakpointsInfo:", data);
-        callback(data);
-      })
-      .catch((err) => {
-        console.error("Breakpoints error:", err);
-        callback(null);
+        console.error("Generate error:", err);
+        resultsHolder.innerHTML = `
+          <div class="result-card" style="text-align:center;padding:var(--space-8)">
+            <p style="color:var(--color-error);font-weight:600">Connection error</p>
+            <p style="color:var(--color-text-muted);margin-top:var(--space-2);font-size:var(--text-sm)">${err.message}</p>
+          </div>`;
+        setProcessing(false);
       });
   }
 
