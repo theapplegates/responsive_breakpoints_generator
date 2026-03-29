@@ -45,6 +45,19 @@
     return url;
   }
 
+  // Rewrite a Cloudinary secure_url to a specific format + width
+  // e.g. https://res.cloudinary.com/cloud/image/upload/v123/id.jpg
+  //   → https://res.cloudinary.com/cloud/image/upload/q_auto,f_avif/c_scale,w_800/v123/id.avif
+  function cloudinaryFormatUrl(secureUrl, format, width) {
+    // Match: .../image/upload/[optional_transforms/]v<version>/<public_id>.<ext>
+    const m = secureUrl.match(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.+\/)?v(\d+)\/(.+)\.[^.]+$/);
+    if (m) {
+      return `${m[1]}q_auto,f_${format}/c_scale,w_${width}/v${m[3]}/${m[4]}.${format}`;
+    }
+    // Fallback: just append format params
+    return secureUrl;
+  }
+
   function escapeHtml(str) {
     return str
       .replace(/&/g, "&amp;")
@@ -252,10 +265,12 @@
         return;
       }
       requestBreakpoints(authInfo, (bpInfo) => {
-        if (bpInfo) {
+        if (bpInfo && bpInfo.responsive_breakpoints) {
           renderResults(imageInfo, bpInfo);
           lastImageInfo = imageInfo;
           regenBtn.style.display = "";
+        } else {
+          log("No breakpoints returned", bpInfo);
         }
         setProcessing(false);
       });
@@ -425,6 +440,44 @@ ${item.reversed_breakpoints.map((bp) => `    ${shortFileName(bp.url)} ${bp.width
         ? `${item.view_port_ratio}% viewport &middot; ${item.screen_size_description}`
         : "";
 
+      // Multi-format <picture> tag with JXL, AVIF, JPG sources
+      const sizesAttr = `(max-width: 768px) 100vw, (max-width: 1200px) 50vw, ${item.max_image_logical_width}px`;
+      const formats = [
+        { ext: "jxl", mime: "image/jxl" },
+        { ext: "avif", mime: "image/avif" },
+      ];
+      const fallbackExt = "jpg";
+      const maxW = item.breakpoints[0].width;
+      const firstBp = item.breakpoints[0]; // largest
+
+      let multiFormatCode = `&lt;<span class="tag">picture</span>&gt;\n`;
+
+      formats.forEach(({ ext, mime }) => {
+        const srcsetLines = item.reversed_breakpoints
+          .map((bp) => `    ${cloudinaryFormatUrl(bp.secure_url, ext, bp.width)} ${bp.width}w`)
+          .join(",\n");
+        multiFormatCode += `  &lt;<span class="tag">source</span>\n`;
+        multiFormatCode += `    <span class="attr">type</span>=<span class="val">"${mime}"</span>\n`;
+        multiFormatCode += `    <span class="attr">srcset</span>=<span class="val">"\n${srcsetLines}"</span>\n`;
+        multiFormatCode += `    <span class="attr">sizes</span>=<span class="val">"${sizesAttr}"</span>\n`;
+        multiFormatCode += `  /&gt;\n`;
+      });
+
+      // JPG fallback img
+      const jpgSrcset = item.reversed_breakpoints
+        .map((bp) => `    ${cloudinaryFormatUrl(bp.secure_url, fallbackExt, bp.width)} ${bp.width}w`)
+        .join(",\n");
+      multiFormatCode += `  &lt;<span class="tag">img</span>\n`;
+      multiFormatCode += `    <span class="attr">src</span>=<span class="val">"${cloudinaryFormatUrl(firstBp.secure_url, fallbackExt, 800)}"</span>\n`;
+      multiFormatCode += `    <span class="attr">srcset</span>=<span class="val">"\n${jpgSrcset}"</span>\n`;
+      multiFormatCode += `    <span class="attr">sizes</span>=<span class="val">"${sizesAttr}"</span>\n`;
+      multiFormatCode += `    <span class="attr">alt</span>=<span class="val">""</span>\n`;
+      multiFormatCode += `    <span class="attr">loading</span>=<span class="val">"lazy"</span>\n`;
+      multiFormatCode += `    <span class="attr">width</span>=<span class="val">"${firstBp.width}"</span>\n`;
+      multiFormatCode += `    <span class="attr">height</span>=<span class="val">"${firstBp.height}"</span>\n`;
+      multiFormatCode += `  /&gt;\n`;
+      multiFormatCode += `&lt;/<span class="tag">picture</span>&gt;`;
+
       html += `
         <div class="result-card fade-up">
           <h3>${item.aspect_ratio} aspect ratio</h3>
@@ -448,9 +501,17 @@ ${item.reversed_breakpoints.map((bp) => `    ${shortFileName(bp.url)} ${bp.width
                 </thead>
                 <tbody>${tableRows}</tbody>
               </table>
+
+              <h4 style="font-family:var(--font-display);font-size:var(--text-sm);font-weight:600;margin-top:var(--space-6);margin-bottom:var(--space-2);color:var(--color-text)">&lt;img&gt; tag</h4>
               <div class="code-block">
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
                 <pre><code>${imgCode}</code></pre>
+              </div>
+
+              <h4 style="font-family:var(--font-display);font-size:var(--text-sm);font-weight:600;margin-top:var(--space-6);margin-bottom:var(--space-2);color:var(--color-text)">&lt;picture&gt; with JXL + AVIF + JPG</h4>
+              <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code>${multiFormatCode}</code></pre>
               </div>
             </div>
           </div>
